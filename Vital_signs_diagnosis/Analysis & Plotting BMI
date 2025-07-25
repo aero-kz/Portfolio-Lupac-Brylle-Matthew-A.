@@ -1,0 +1,55 @@
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(psych)      
+library(ggpubr)     
+
+# Load Dataset
+data <- read.csv("C:/Users/aekz/Downloads/1_Vital_signs_diagnosis_data_Group_005.csv", stringsAsFactors = FALSE)
+
+# View structure
+glimpse(data)
+
+# Convert relevant columns to numeric (in case they're read as characters)
+data$Age <- as.numeric(data$Age)
+data$Weight_kg <- as.numeric(data$Weight_kg)
+data$Height_cm <- as.numeric(data$Height_cm)
+data$BMI <- as.numeric(data$BMI)
+data$Systolic_BP <- as.numeric(data$Systolic_BP)
+data$Diastolic_BP <- as.numeric(data$Diastolic_BP)
+data$Heart_rate <- as.numeric(data$Heart_rate)
+data$Glucose_mg.dL <- as.numeric(data$Glucose_mg.dL)
+data$Cholesterol_mg.dL <- as.numeric(data$Cholesterol_mg.dL)
+data$Daily_Sleeping_hours <- as.numeric(data$Daily_Sleeping_hours)
+
+# Convert Sex to factor for plotting
+data$Sex <- as.factor(data$Sex)
+
+# Descriptive Statistics
+summary_stats <- data %>%
+  select(Age, Weight_kg, Height_cm, BMI, Systolic_BP, Diastolic_BP,
+         Heart_rate, Glucose_mg.dL, Cholesterol_mg.dL, Daily_Sleeping_hours) %>%
+  psych::describe()
+
+print(summary_stats)
+
+# Visualization: Boxplot of BMI by Sex
+bmi_plot <- ggplot(data, aes(x = Sex, y = BMI, fill = Sex)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Pastel1") +
+  theme_minimal() +
+  labs(
+    title = "BMI Distribution by Sex",
+    x = "Sex",
+    y = "Body Mass Index (BMI)"
+  )
+
+# Display the plot
+print(bmi_plot)
+
+# Save the plot
+ggsave("BMI_by_Sex_Boxplot.png", plot = bmi_plot, width = 6, height = 4, dpi = 300)
+
+# Correlation Test: Systolic vs Diastolic BP
+cor_test <- cor.test(data$Systolic_BP, data$Diastolic_BP)
+print(cor_test)
