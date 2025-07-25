@@ -1,1 +1,1 @@
-# Portfolio-Lupac-Brylle-Matthew-A.
+# This portfolio presents a structured analysis of multiple health-related datasets using R The objective is to explore, analyze, and derive meaningful insights from each dataset through descriptive statistics, visualizations, and appropriate statistical tests. The final outputs include code scripts, visual plots, and written reports summarizing the finding
