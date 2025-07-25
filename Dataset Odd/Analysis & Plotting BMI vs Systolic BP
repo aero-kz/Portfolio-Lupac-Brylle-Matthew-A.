@@ -49,16 +49,18 @@ ggplot(data, aes(x = Daily_Sleeping_hours)) +
   xlab("Hours of Sleep") +
   ylab("Count")
 
-# Boxplot: Glucose by Medication
-ggplot(data, aes(x = Medication, y = Glucose_mg.dL, fill = Medication)) +
+# Boxplot: Cholesterol by Stress Level
+ggplot(data, aes(x = Stress_Level, y = Cholesterol_mg.dL, fill = Stress_Level)) +
   geom_boxplot() +
   theme_minimal() +
-  ggtitle("Boxplot: Glucose Levels by Medication Use") +
-  xlab("Medication Status") +
-  ylab("Glucose (mg/dL)")
-
+  ggtitle("Boxplot: Cholesterol Levels by Stress Level") +
+  xlab("Stress Level") +
+  ylab("Cholesterol (mg/dL)")
 
 
 
 chisq.test(table(data$Hypertension, data$Smoking_Status))
 ]
+
+
+
