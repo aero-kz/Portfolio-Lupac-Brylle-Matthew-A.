@@ -1,0 +1,55 @@
+
+library(tidyverse)
+library(psych)
+library(ggpubr)
+
+
+
+data <- read.csv("C:/Users/aekz/Downloads/3_Nutritional_Dietary_data_Group_005.csv", stringsAsFactors = FALSE)
+glimpse(data)
+colnames(data)
+
+
+sum(is.na(data))
+
+
+data_clean <- data %>%
+  mutate(across(where(is.numeric), ~ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+
+summary_stats <- describe(data_clean)
+print(summary_stats)
+
+
+# Boxplot: BMI
+ggplot(data_clean, aes(y = BMI)) +
+  geom_boxplot(fill = "salmon") +
+  labs(title = "Boxplot of BMI", y = "BMI")
+ggsave("boxplot_bmi.png")
+
+# Scatter Plot: Caloric Intake vs Physical Activity
+ggplot(data_clean, aes(x = Physical_Activity_Hours_Week, y = Daily_Caloric_Intake_kcal)) +
+  geom_point(color = "darkgreen") +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Physical Activity vs. Caloric Intake", x = "Activity Hours/Week", y = "Calories")
+ggsave("scatter_activity_calories.png")
+
+# Bar Graph: Water Intake Grouped
+data_clean %>%
+  mutate(Water_Bin = cut(Water_intake_ml, breaks = c(0, 1000, 2000, 3000, 4000, Inf))) %>%
+  ggplot(aes(x = Water_Bin)) +
+  geom_bar(fill = "purple") +
+  labs(title = "Water Intake Distribution", x = "Water Intake (ml)", y = "Frequency")
+ggsave("barplot_water_intake.png")
+
+
+
+# a. Correlation Matrix
+num_data <- data_clean %>%
+  select(Body_Fat_percent, Muscle_Mass_kg, BMI,
+         Physical_Activity_Hours_Week, Daily_Caloric_Intake_kcal)
+
+cor_matrix <- cor(num_data, use = "complete.obs")
+print(cor_matrix)
+
+
+
