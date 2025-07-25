@@ -1,55 +1,75 @@
+# Load required libraries
 library(tidyverse)
+library(janitor)
 library(ggplot2)
-library(readr)
-library(psych)      
-library(ggpubr)     
+library(modeest)
 
-# Load Dataset
-data <- read.csv("C:/Users/aekz/Downloads/1_Vital_signs_diagnosis_data_Group_005.csv", stringsAsFactors = FALSE)
+# 1. Load the dataset
+data <- read.csv("C:/Users/naomi/OneDrive/Desktop/R3/4_Time_series_Mointoring_data_Group_005.csv")
 
-# View structure
-glimpse(data)
+# 2. Clean column names
+data <- clean_names(data)
 
-# Convert relevant columns to numeric (in case they're read as characters)
-data$Age <- as.numeric(data$Age)
-data$Weight_kg <- as.numeric(data$Weight_kg)
-data$Height_cm <- as.numeric(data$Height_cm)
-data$BMI <- as.numeric(data$BMI)
-data$Systolic_BP <- as.numeric(data$Systolic_BP)
-data$Diastolic_BP <- as.numeric(data$Diastolic_BP)
-data$Heart_rate <- as.numeric(data$Heart_rate)
-data$Glucose_mg.dL <- as.numeric(data$Glucose_mg.dL)
-data$Cholesterol_mg.dL <- as.numeric(data$Cholesterol_mg.dL)
-data$Daily_Sleeping_hours <- as.numeric(data$Daily_Sleeping_hours)
+# 3. Check structure
+str(data)
 
-# Convert Sex to factor for plotting
-data$Sex <- as.factor(data$Sex)
+# 4. Handle missing values
+data <- na.omit(data)
 
-# Descriptive Statistics
-summary_stats <- data %>%
-  select(Age, Weight_kg, Height_cm, BMI, Systolic_BP, Diastolic_BP,
-         Heart_rate, Glucose_mg.dL, Cholesterol_mg.dL, Daily_Sleeping_hours) %>%
-  psych::describe()
+# 5. Convert all necessary columns to numeric just in case
+data <- data %>% mutate(across(everything(), as.numeric))
 
-print(summary_stats)
-
-# Visualization: Boxplot of BMI by Sex
-bmi_plot <- ggplot(data, aes(x = Sex, y = BMI, fill = Sex)) +
-  geom_boxplot() +
-  scale_fill_brewer(palette = "Pastel1") +
-  theme_minimal() +
-  labs(
-    title = "BMI Distribution by Sex",
-    x = "Sex",
-    y = "Body Mass Index (BMI)"
+# --- 6. DESCRIPTIVE STATISTICS FUNCTION ---
+describe_variable <- function(x) {
+  list(
+    Mean = mean(x),
+    Median = median(x),
+    SD = sd(x),
   )
+}
 
-# Display the plot
-print(bmi_plot)
+# Apply the function to each numeric column
+desc_stats <- lapply(data[,-1], describe_variable)
+desc_stats
 
-# Save the plot
-ggsave("BMI_by_Sex_Boxplot.png", plot = bmi_plot, width = 6, height = 4, dpi = 300)
+# --- 7. DATA VISUALIZATIONS ---
 
-# Correlation Test: Systolic vs Diastolic BP
-cor_test <- cor.test(data$Systolic_BP, data$Diastolic_BP)
-print(cor_test)
+# a. Histogram of Patient 1 Average Steps
+ggplot(data, aes(x = patient_1_avg_steps)) +
+  geom_histogram(fill = "skyblue", color = "black", bins = 15) +
+  ggtitle("Histogram: Patient 1 Average Steps")
+
+# b. Boxplot of BMI across 3 Patients
+data_long_bmi <- data %>%
+  pivot_longer(cols = starts_with("patient_") & ends_with("bmi"),
+               names_to = "Patient", values_to = "BMI")
+ggplot(data_long_bmi, aes(x = Patient, y = BMI, fill = Patient)) +
+  geom_boxplot() +
+  ggtitle("Boxplot: BMI of Patients")
+
+# c. Scatter plot: Steps vs Stress Level for Patient 1
+ggplot(data, aes(x = patient_1_avg_steps, y = patient_1_stress_level)) +
+  geom_point(color = "darkred") +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  ggtitle("Scatter: Patient 1 Steps vs Stress Level")
+
+# d. Bar Graph: Average Stress Levels per Patient
+avg_stress <- data %>%
+  summarise(across(contains("stress_level"), mean)) %>%
+  pivot_longer(everything(), names_to = "Patient", values_to = "Avg_Stress")
+ggplot(avg_stress, aes(x = Patient, y = Avg_Stress, fill = Patient)) +
+  geom_col() +
+  ggtitle("Bar Graph: Average Stress Level per Patient")
+
+# --- 8. ADVANCED STATISTICAL TEST ---
+
+# Pearson Correlation: Steps vs Stress for each patient
+cor_p1 <- cor.test(data$patient_1_avg_steps, data$patient_1_stress_level)
+cor_p2 <- cor.test(data$patient_2_avg_steps, data$patient_2_stress_level)
+cor_p3 <- cor.test(data$patient_3_avg_steps, data$patient_3_stress_level)
+
+# Print results
+cat("Patient 1 correlation:", cor_p1$estimate, "p-value:", cor_p1$p.value, "\n")
+cat("Patient 2 correlation:", cor_p2$estimate, "p-value:", cor_p2$p.value, "\n")
+cat("Patient 3 correlation:", cor_p3$estimate, "p-value:", cor_p3$p.value, "\n")
+
