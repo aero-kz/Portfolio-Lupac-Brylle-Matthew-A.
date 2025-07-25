@@ -1,0 +1,50 @@
+install.packages("ggplot")
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+data <- read.csv("C:/Users/aekz/Downloads/Dataset_odd (1).csv", stringsAsFactors = FALSE)
+str(data)
+colnames(data)
+
+
+glimpse(data)
+
+
+data <- data %>%
+  mutate(
+    Sex = as.factor(Sex),
+    Smoking_Status = as.factor(Smoking_Status),
+    Hypertension = as.factor(Hypertension),
+    Elevated.Risk = as.factor(Elevated.Risk),
+    Medication = as.factor(Medication),
+    Stress_Level = as.factor(Stress_Level)
+  )
+
+
+summary(data)
+
+data %>%
+  select(Age, Weight_kg, Height_cm, BMI, Systolic_BP, Diastolic_BP,
+         Heart_rate, Physical_Activity_Hours_Week, Daily_Sleeping_hours,
+         Glucose_mg.dL, Cholesterol_mg.dL) %>%
+  summarise_all(list(mean = mean, median = median, sd = sd), na.rm = TRUE)
+
+
+# Scatter Plot: BMI vs. Systolic_BP
+ggplot(data, aes(x = BMI, y = Systolic_BP)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", col = "red") +
+  theme_minimal()
+
+# Bar Graph: Smoking_Status count
+ggplot(data, aes(x = Smoking_Status)) +
+  geom_bar(fill = "coral") +
+  theme_minimal()
+
+
+chisq.test(table(data$Hypertension, data$Smoking_Status))
+]
+
+
+
