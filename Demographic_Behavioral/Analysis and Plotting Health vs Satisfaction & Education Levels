@@ -1,0 +1,51 @@
+
+
+library(tidyverse)
+
+data <- read.csv("C:/Users/aekz/Downloads/2_Demographic_Behavioral_data_Group_005.csv", stringsAsFactors = FALSE)
+
+data <- data %>%
+  select(Patient.ID, Age, Sex, Weight_kg, Height_cm, BMI, Region, Socioeconomic,
+         Education, Physical_Activity_Hours_Week, Smoking_Status, Drinking_Status,
+         Patient_Satisfaction_Score, Health_Literacy_Score)
+
+data <- data %>%
+  mutate(
+    Sex = as.factor(Sex),
+    Region = as.factor(Region),
+    Socioeconomic = as.factor(Socioeconomic),
+    Education = as.factor(Education),
+    Smoking_Status = as.factor(Smoking_Status),
+    Drinking_Status = as.factor(Drinking_Status)
+  )
+
+
+data <- data %>% drop_na()
+
+
+summary(data)
+
+
+data %>%
+  select(Age, Weight_kg, Height_cm, BMI, Physical_Activity_Hours_Week,
+         Patient_Satisfaction_Score, Health_Literacy_Score) %>%
+  summarise_all(list(mean = mean, median = median, sd = sd), na.rm = TRUE)
+
+
+# Scatter: Health Literacy vs Satisfaction
+ggplot(data, aes(x = Health_Literacy_Score, y = Patient_Satisfaction_Score)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", col = "blue") +
+  theme_minimal()
+
+# Barplot: Education levels
+ggplot(data, aes(x = Education)) +
+  geom_bar(fill = "purple") +
+  theme_minimal()
+
+# Advanced Test: Correlation between Satisfaction and Health Literacy
+cor.test(data$Patient_Satisfaction_Score, data$Health_Literacy_Score)
+
+
+
+
