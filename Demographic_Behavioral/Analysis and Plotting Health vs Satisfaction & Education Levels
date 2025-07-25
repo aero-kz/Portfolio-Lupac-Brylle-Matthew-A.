@@ -3,6 +3,7 @@
 library(tidyverse)
 
 data <- read.csv("C:/Users/aekz/Downloads/2_Demographic_Behavioral_data_Group_005.csv", stringsAsFactors = FALSE)
+colnames(data)
 
 data <- data %>%
   select(Patient.ID, Age, Sex, Weight_kg, Height_cm, BMI, Region, Socioeconomic,
@@ -30,6 +31,22 @@ data %>%
   select(Age, Weight_kg, Height_cm, BMI, Physical_Activity_Hours_Week,
          Patient_Satisfaction_Score, Health_Literacy_Score) %>%
   summarise_all(list(mean = mean, median = median, sd = sd), na.rm = TRUE)
+
+# Histogram: Physical Activity Hours per Week
+ggplot(data, aes(x = Physical_Activity_Hours_Week)) +
+  geom_histogram(fill = "steelblue", color = "black", bins = 12) +
+  theme_minimal() +
+  ggtitle("Histogram: Weekly Physical Activity Hours") +
+  xlab("Hours per Week") +
+  ylab("Number of Patients")
+
+# Boxplot: BMI by Drinking Status
+ggplot(data, aes(x = Drinking_Status, y = BMI, fill = Drinking_Status)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Boxplot: BMI by Drinking Status") +
+  xlab("Drinking Status") +
+  ylab("BMI")
 
 
 # Scatter: Health Literacy vs Satisfaction
