@@ -1,0 +1,61 @@
+
+library(tidyverse)
+library(ggpubr)
+library(psych)
+
+# Load dataset
+data <- read.csv("C:/Users/aekz/Downloads/4_Time_series_Mointoring_data_Group_005.csv", stringsAsFactors = FALSE)
+
+# View structure and column names
+glimpse(data)
+
+# Convert step counts, stress levels, and BMI to numeric
+cols_to_convert <- colnames(data)[3:11]
+data[cols_to_convert] <- lapply(data[cols_to_convert], as.numeric)
+
+# --- Descriptive Statistics ---
+
+# Mean, Median, SD of numeric variables
+summary_stats <- data %>%
+  summarise(across(all_of(cols_to_convert), list(
+    mean = ~mean(.x, na.rm = TRUE),
+    median = ~median(.x, na.rm = TRUE),
+    sd = ~sd(.x, na.rm = TRUE)
+  ), .names = "{.col}_{.fn}"))
+
+print(summary_stats)
+
+# --- Visualizations ---
+
+# Bar plot: Average steps per month per patient
+data_long_steps <- data %>%
+  pivot_longer(cols = starts_with("Patient_") & ends_with("avg_steps"),
+               names_to = "Patient", values_to = "Steps")
+
+ggplot(data_long_steps, aes(x = Month, y = Steps, fill = Patient)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Average Steps per Month by Patient", x = "Month", y = "Steps") +
+  theme_minimal()
+
+ggsave("avg_steps_barplot.png", width = 8, height = 5)
+
+# Boxplot: Stress levels
+data_long_stress <- data %>%
+  pivot_longer(cols = ends_with("Stress_Level"),
+               names_to = "Patient", values_to = "Stress_Level")
+
+ggplot(data_long_stress, aes(x = Patient, y = Stress_Level, fill = Patient)) +
+  geom_boxplot() +
+  labs(title = "Stress Levels Distribution by Patient", x = "Patient", y = "Stress Level") +
+  theme_minimal()
+
+ggsave("stress_levels_boxplot.png", width = 7, height = 5)
+
+
+
+cor_matrix <- data %>%
+  select(starts_with("Patient")) %>%
+  cor(use = "complete.obs")
+
+print(cor_matrix)
+
