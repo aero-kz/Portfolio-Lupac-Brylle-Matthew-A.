@@ -1,4 +1,3 @@
-install.packages("ggplot")
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
@@ -42,9 +41,24 @@ ggplot(data, aes(x = Smoking_Status)) +
   geom_bar(fill = "coral") +
   theme_minimal()
 
+# Histogram: Daily Sleeping Hours
+ggplot(data, aes(x = Daily_Sleeping_hours)) +
+  geom_histogram(fill = "darkgreen", color = "black", bins = 12) +
+  theme_minimal() +
+  ggtitle("Histogram: Daily Sleeping Hours") +
+  xlab("Hours of Sleep") +
+  ylab("Count")
+
+# Boxplot: Glucose by Medication
+ggplot(data, aes(x = Medication, y = Glucose_mg.dL, fill = Medication)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Boxplot: Glucose Levels by Medication Use") +
+  xlab("Medication Status") +
+  ylab("Glucose (mg/dL)")
+
+
+
 
 chisq.test(table(data$Hypertension, data$Smoking_Status))
 ]
-
-
-
