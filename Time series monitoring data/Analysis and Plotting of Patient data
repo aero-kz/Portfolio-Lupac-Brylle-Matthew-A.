@@ -1,61 +1,75 @@
-
+# Load required libraries
 library(tidyverse)
-library(ggpubr)
-library(psych)
+library(janitor)
+library(ggplot2)
+library(modeest)
 
-# Load dataset
-data <- read.csv("C:/Users/aekz/Downloads/4_Time_series_Mointoring_data_Group_005.csv", stringsAsFactors = FALSE)
+# 1. Load the dataset
+data <- read.csv("C:/Users/naomi/OneDrive/Desktop/R3/4_Time_series_Mointoring_data_Group_005.csv")
 
-# View structure and column names
-glimpse(data)
+# 2. Clean column names
+data <- clean_names(data)
 
-# Convert step counts, stress levels, and BMI to numeric
-cols_to_convert <- colnames(data)[3:11]
-data[cols_to_convert] <- lapply(data[cols_to_convert], as.numeric)
+# 3. Check structure
+str(data)
 
-# --- Descriptive Statistics ---
+# 4. Handle missing values
+data <- na.omit(data)
 
-# Mean, Median, SD of numeric variables
-summary_stats <- data %>%
-  summarise(across(all_of(cols_to_convert), list(
-    mean = ~mean(.x, na.rm = TRUE),
-    median = ~median(.x, na.rm = TRUE),
-    sd = ~sd(.x, na.rm = TRUE)
-  ), .names = "{.col}_{.fn}"))
+# 5. Convert all necessary columns to numeric just in case
+data <- data %>% mutate(across(everything(), as.numeric))
 
-print(summary_stats)
+# --- 6. DESCRIPTIVE STATISTICS FUNCTION ---
+describe_variable <- function(x) {
+  list(
+    Mean = mean(x),
+    Median = median(x),
+    SD = sd(x),
+  )
+}
 
-# --- Visualizations ---
+# Apply the function to each numeric column
+desc_stats <- lapply(data[,-1], describe_variable)
+desc_stats
 
-# Bar plot: Average steps per month per patient
-data_long_steps <- data %>%
-  pivot_longer(cols = starts_with("Patient_") & ends_with("avg_steps"),
-               names_to = "Patient", values_to = "Steps")
+# --- 7. DATA VISUALIZATIONS ---
 
-ggplot(data_long_steps, aes(x = Month, y = Steps, fill = Patient)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Average Steps per Month by Patient", x = "Month", y = "Steps") +
-  theme_minimal()
+# a. Histogram of Patient 1 Average Steps
+ggplot(data, aes(x = patient_1_avg_steps)) +
+  geom_histogram(fill = "skyblue", color = "black", bins = 15) +
+  ggtitle("Histogram: Patient 1 Average Steps")
 
-ggsave("avg_steps_barplot.png", width = 8, height = 5)
-
-# Boxplot: Stress levels
-data_long_stress <- data %>%
-  pivot_longer(cols = ends_with("Stress_Level"),
-               names_to = "Patient", values_to = "Stress_Level")
-
-ggplot(data_long_stress, aes(x = Patient, y = Stress_Level, fill = Patient)) +
+# b. Boxplot of BMI across 3 Patients
+data_long_bmi <- data %>%
+  pivot_longer(cols = starts_with("patient_") & ends_with("bmi"),
+               names_to = "Patient", values_to = "BMI")
+ggplot(data_long_bmi, aes(x = Patient, y = BMI, fill = Patient)) +
   geom_boxplot() +
-  labs(title = "Stress Levels Distribution by Patient", x = "Patient", y = "Stress Level") +
-  theme_minimal()
+  ggtitle("Boxplot: BMI of Patients")
 
-ggsave("stress_levels_boxplot.png", width = 7, height = 5)
+# c. Scatter plot: Steps vs Stress Level for Patient 1
+ggplot(data, aes(x = patient_1_avg_steps, y = patient_1_stress_level)) +
+  geom_point(color = "darkred") +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  ggtitle("Scatter: Patient 1 Steps vs Stress Level")
 
+# d. Bar Graph: Average Stress Levels per Patient
+avg_stress <- data %>%
+  summarise(across(contains("stress_level"), mean)) %>%
+  pivot_longer(everything(), names_to = "Patient", values_to = "Avg_Stress")
+ggplot(avg_stress, aes(x = Patient, y = Avg_Stress, fill = Patient)) +
+  geom_col() +
+  ggtitle("Bar Graph: Average Stress Level per Patient")
 
+# --- 8. ADVANCED STATISTICAL TEST ---
 
-cor_matrix <- data %>%
-  select(starts_with("Patient")) %>%
-  cor(use = "complete.obs")
+# Pearson Correlation: Steps vs Stress for each patient
+cor_p1 <- cor.test(data$patient_1_avg_steps, data$patient_1_stress_level)
+cor_p2 <- cor.test(data$patient_2_avg_steps, data$patient_2_stress_level)
+cor_p3 <- cor.test(data$patient_3_avg_steps, data$patient_3_stress_level)
 
-print(cor_matrix)
+# Print results
+cat("Patient 1 correlation:", cor_p1$estimate, "p-value:", cor_p1$p.value, "\n")
+cat("Patient 2 correlation:", cor_p2$estimate, "p-value:", cor_p2$p.value, "\n")
+cat("Patient 3 correlation:", cor_p3$estimate, "p-value:", cor_p3$p.value, "\n")
 
