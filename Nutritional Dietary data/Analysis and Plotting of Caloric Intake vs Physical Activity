@@ -12,7 +12,7 @@ colnames(data)
 
 sum(is.na(data))
 
-
+# Descriptive Statistics
 data_clean <- data %>%
   mutate(across(where(is.numeric), ~ifelse(is.na(.), mean(., na.rm = TRUE), .)))
 
@@ -53,3 +53,4 @@ print(cor_matrix)
 
 
 
+  
